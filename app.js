@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
+const rateLimit = require('express-rate-limit'); // 🔹 Ajouté pour limiter les requêtes sur /auth
 
 // 🔹 Chargement des variables d'environnement (.env)
 dotenv.config();
@@ -17,7 +18,7 @@ const app = express();
 // ==========================================
 // 🔹 Import des middlewares personnalisés
 // ==========================================
-const errorHandler = require('./middlewares/errorHandler');
+const errorHandler = require('./middlewares/errorHandler'); // déjà existant
 
 // ==========================================
 // 🔹 Import des routes
@@ -25,27 +26,43 @@ const errorHandler = require('./middlewares/errorHandler');
 const authRoutes = require('./routes/authRoutes'); // routes publiques : login / register
 const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
-const structureRoutes = require('./routes/structureRoutes');
+const structureRoutes = require('./routes/structuresRoutes'); // ✅ corrigé : plural
 const clientRoutes = require('./routes/clientRoutes');
 const factureRoutes = require('./routes/factureRoutes');
-const payementRoutes = require('./routes/payementRoutes');
+const payementRoutes = require('./routes/payementsRoutes');
+
+// ==========================================
+// 🔹 Import des modèles Sequelize et test DB
+// ==========================================
+const db = require('./models'); // 🔹 Ajouté
+db.sequelize.authenticate()
+  .then(() => console.log('🗄️ Base de données connectée'))
+  .catch(err => console.error('Erreur DB :', err));
 
 // ==========================================
 // 🔹 Middlewares globaux
 // ==========================================
 
-// Autoriser le CORS (accès depuis ton appli mobile ou front)
-app.use(cors({
-    origin: '*', // tu peux restreindre ici avec ton domaine plus tard
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Parsing du corps des requêtes JSON
+app.use(express.json());
 
 // Sécurisation des headers HTTP
 app.use(helmet());
 
-// Parsing du corps des requêtes JSON
-app.use(express.json());
+// 🔹 CORS
+app.use(cors({
+    origin: process.env.CORS_ORIGIN?.split(',') || '*', // 🔹 recommandé de limiter en prod
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 🔹 Rate limiting sur /api/auth pour protéger login/register
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,                   // 10 requêtes max par IP
+  message: "Trop de tentatives, réessaye plus tard"
+});
+app.use('/api/auth', authLimiter);
 
 // ==========================================
 // 🔹 Définition des routes
