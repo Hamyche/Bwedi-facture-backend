@@ -3,10 +3,9 @@ const router = express.Router();
 const { body, param } = require('express-validator');
 
 const payementController = require('../controllers/payementController');
-const authorizeOwner = require('../middlewares/authorizeOwner');
-const { validate } = require('../middlewares/validationMiddleware');
-const { verifyToken } = require('../middlewares/authMiddleware');
-const Payement = require('../models/payement'); // ✅ nécessaire pour authorizeOwner
+const { authorizeOwner } = require('../middlewares/authorizeOwner');
+const { validate } = require('../middlewares/validationmiddlewares');
+const { verifyToken } = require('../middlewares/authmiddlewares');
 
 // 🔹 Créer un paiement
 router.post(
@@ -39,7 +38,7 @@ router.get(
 router.put(
     '/:id',
     verifyToken,
-    authorizeOwner(Payement, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Payement', 'user_id'),
     [
         param('id').isInt().withMessage('ID paiement invalide'),
         body('montant').optional().isFloat({ gt: 0 }).withMessage('Montant invalide'),
@@ -53,7 +52,7 @@ router.put(
 router.delete(
     '/:id',
     verifyToken,
-    authorizeOwner(Payement, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Payement', 'user_id'),
     [param('id').isInt().withMessage('ID paiement invalide')],
     validate,
     payementController.deletePayement

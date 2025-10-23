@@ -3,10 +3,9 @@ const router = express.Router();
 const { body, param } = require('express-validator');
 
 const structureController = require('../controllers/structureController');
-const authorizeOwner = require('../middlewares/authorizeOwner');
-const { validate } = require('../middlewares/validationMiddleware');
-const { verifyToken } = require('../middlewares/authMiddleware');
-const Structure = require('../models/structure'); // ✅ nécessaire pour authorizeOwner
+const { authorizeOwner } = require('../middlewares/authorizeOwner');
+const { validate } = require('../middlewares/validationmiddlewares');
+const { verifyToken } = require('../middlewares/authmiddlewares');
 
 // 🔹 Créer une structure
 router.post(
@@ -38,7 +37,7 @@ router.get(
 router.put(
     '/:id',
     verifyToken,
-    authorizeOwner(Structure, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Structure', 'user_id'),
     [
         param('id').isInt().withMessage('ID invalide'),
         body('categorie_id').optional().isInt().withMessage('ID catégorie invalide')
@@ -51,7 +50,7 @@ router.put(
 router.delete(
     '/:id',
     verifyToken,
-    authorizeOwner(Structure, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Structure', 'user_id'),
     [param('id').isInt().withMessage('ID invalide')],
     validate,
     structureController.deleteStructure

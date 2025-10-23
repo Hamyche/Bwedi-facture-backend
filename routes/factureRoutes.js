@@ -2,11 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { body, param } = require('express-validator');
 
-const factureController = require('../controllers/factureController');
-const authorizeOwner = require('../middlewares/authorizeOwner');
-const { validate } = require('../middlewares/validationMiddleware');
-const { verifyToken } = require('../middlewares/authMiddleware');
-const Facture = require('../models/facture'); // ✅ nécessaire pour authorizeOwner
+const factureController = require('../controllers/facturecontroller');
+const { authorizeOwner } = require('../middlewares/authorizeOwner');
+const { validate } = require('../middlewares/validationmiddlewares');
+const { verifyToken } = require('../middlewares/authmiddlewares');
 
 // 🔹 Créer une facture
 router.post(
@@ -39,7 +38,7 @@ router.get(
 router.put(
     '/:id',
     verifyToken,
-    authorizeOwner(Facture, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Facture', 'user_id'),
     [
         param('id').isInt().withMessage('ID facture invalide'),
         body('montant').optional().isFloat({ gt: 0 }).withMessage('Montant invalide'),
@@ -53,7 +52,7 @@ router.put(
 router.delete(
     '/:id',
     verifyToken,
-    authorizeOwner(Facture, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Facture', 'user_id'),
     [param('id').isInt().withMessage('ID facture invalide')],
     validate,
     factureController.deleteFacture

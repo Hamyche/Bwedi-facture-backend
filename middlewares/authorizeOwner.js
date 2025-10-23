@@ -1,6 +1,5 @@
 // middlewares/authorizeOwner.js
-const models = require('../models'); // On importe tous les modèles
-// Assure-toi que dans models/index.js tu exportes tous tes modèles
+const models = require('../models');
 
 /**
  * Vérifie si l'utilisateur est propriétaire de la ressource
@@ -10,24 +9,39 @@ const models = require('../models'); // On importe tous les modèles
 const authorizeOwner = (modelName, ownerField = 'user_id') => {
   return async (req, res, next) => {
     try {
-      const Model = models[modelName];
-      if (!Model) return res.status(500).json({ message: `Modèle ${modelName} introuvable` });
-
-      const id = req.params.id; // L'id de la ressource dans l'URL
-      const resource = await Model.findByPk(id);
-      if (!resource) return res.status(404).json({ message: `${modelName} non trouvé` });
-
-      // Vérification propriétaire
-      if (resource[ownerField] !== req.user.id && resource[ownerField] !== req.user.structure_id) {
-        return res.status(403).json({ message: 'Accès refusé : pas le propriétaire' });
+      // Vérifier que l'utilisateur est authentifié
+      if (!req.user) {
+        return res.status(401).json({ message: 'Utilisateur non authentifié' });
       }
 
-      next(); // Tout est ok
+      const Model = models[modelName];
+      if (!Model) {
+        return res.status(500).json({ message: `Modèle ${modelName} introuvable` });
+      }
+
+      const id = req.params.id;
+      if (!id) {
+        return res.status(400).json({ message: 'ID de ressource manquant' });
+      }
+
+      const resource = await Model.findByPk(id);
+      if (!resource) {
+        return res.status(404).json({ message: `${modelName} non trouvé` });
+      }
+
+      // Vérification propriétaire stricte (conversion en nombre pour éviter les erreurs de type)
+      if (Number(resource[ownerField]) !== Number(req.user.id)) {
+        return res.status(403).json({ message: 'Accès refusé : vous n\'êtes pas le propriétaire' });
+      }
+
+      // Stocker la ressource pour éviter une nouvelle requête
+      req.resource = resource;
+      next();
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Erreur serveur lors de l’autorisation' });
+      console.error('Erreur autorisation:', err);
+      res.status(500).json({ message: 'Erreur serveur lors de l\'autorisation' });
     }
   };
 };
 
-module.exports = authorizeOwner;
+module.exports = { authorizeOwner };

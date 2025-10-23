@@ -1,16 +1,29 @@
-// middlewares/errormiddleware.js
+// middlewares/errorMiddleware.js
 
-// 🔹 Middleware global pour gérer les erreurs
+// Middleware global pour gérer les erreurs
 const errorHandler = (err, req, res, next) => {
-    console.error(err.stack); // Log de l'erreur côté serveur pour le débogage
+    console.error('Erreur:', err.stack);
 
     // Si l'erreur a déjà un status, on l'utilise, sinon 500
     const statusCode = err.statusCode || 500;
 
-    // On renvoie un message clair au client, sans exposer de détails sensibles
+    // Message d'erreur sécurisé
+    let message = 'Une erreur est survenue sur le serveur';
+    
+    // Messages spécifiques selon le type d'erreur
+    if (err.name === 'ValidationError') {
+        message = 'Données invalides';
+    } else if (err.name === 'SequelizeUniqueConstraintError') {
+        message = 'Cette ressource existe déjà';
+    } else if (err.name === 'SequelizeForeignKeyConstraintError') {
+        message = 'Référence invalide';
+    } else if (err.message && statusCode < 500) {
+        message = err.message;
+    }
+
     res.status(statusCode).json({
         success: false,
-        message: err.message || 'Une erreur est survenue sur le serveur'
+        message: message
     });
 };
 

@@ -27,6 +27,7 @@ const testClient = async () => {
       email: 'jean.dupont@example.com',
       telephone: '0654321098',
       adresse: '123 Rue Exemple, Libreville',
+       type_client: 'particulier', // <-- important
       nif: '123456789A',
       rccm: 'GA-LBV-2025-B-0001',
       tva: 'GA1234567',

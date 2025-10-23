@@ -6,7 +6,7 @@ const { body } = require('express-validator');
 const rateLimit = require('express-rate-limit'); // ✅ Protection brute force
 
 const userController = require('../controllers/usercontroller');
-const { validate } = require('../middlewares/validationMiddleware');
+const { validate } = require('../middlewares/validationmiddlewares');
 
 // ==========================================
 // 🔹 Configuration du rate limiter pour /login

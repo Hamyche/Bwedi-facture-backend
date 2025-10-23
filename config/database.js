@@ -14,8 +14,6 @@ const sequelize = new Sequelize(
   }
 );
 
-sequelize.authenticate()
-  .then(() => console.log('✅ Connecté à PostgreSQL via Sequelize'))
-  .catch(err => console.error('❌ Échec de la connexion :', err));
+// Authentification gérée dans app.js
 
 module.exports = sequelize;

@@ -3,10 +3,9 @@ const router = express.Router();
 const { body, param } = require('express-validator');
 
 const userController = require('../controllers/usercontroller');
-const authorizeOwner = require('../middlewares/authorizeOwner');
-const { validate } = require('../middlewares/validationMiddleware');
-const { verifyToken } = require('../middlewares/authMiddleware');
-const User = require('../models/user'); // ✅ nécessaire pour authorizeOwner
+const { authorizeOwner } = require('../middlewares/authorizeOwner');
+const { validate } = require('../middlewares/validationmiddlewares');
+const { verifyToken } = require('../middlewares/authmiddlewares');
 
 // 🔹 Créer un nouvel utilisateur
 router.post(
@@ -22,8 +21,6 @@ router.post(
     validate,
     userController.createUser
 );
-
-// 🚫 Route /login supprimée ici (elle doit être dans routes/authRoutes.js)
 
 // 🔹 Récupérer tous les utilisateurs
 router.get('/', verifyToken, userController.getAllUsers);
@@ -41,7 +38,7 @@ router.get(
 router.put(
     '/:id',
     verifyToken,
-    authorizeOwner(User, 'id'), // ✅ vérification propriétaire
+    authorizeOwner('User', 'id'), // ✅ vérification propriétaire
     [
         param('id').isInt().withMessage('ID invalide'),
         body('email').optional().isEmail().withMessage('Email invalide'),
@@ -55,7 +52,7 @@ router.put(
 router.delete(
     '/:id',
     verifyToken,
-    authorizeOwner(User, 'id'), // ✅ vérification propriétaire
+    authorizeOwner('User', 'id'), // ✅ vérification propriétaire
     [param('id').isInt().withMessage('ID invalide')],
     validate,
     userController.deleteUser

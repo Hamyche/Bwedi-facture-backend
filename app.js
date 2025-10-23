@@ -18,7 +18,7 @@ const app = express();
 // ==========================================
 // 🔹 Import des middlewares personnalisés
 // ==========================================
-const errorHandler = require('./middlewares/errorHandler'); // déjà existant
+const errorHandler = require('./middlewares/errormiddlewares');
 
 // ==========================================
 // 🔹 Import des routes
@@ -29,15 +29,28 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const structureRoutes = require('./routes/structuresRoutes'); // ✅ corrigé : plural
 const clientRoutes = require('./routes/clientRoutes');
 const factureRoutes = require('./routes/factureRoutes');
-const payementRoutes = require('./routes/payementsRoutes');
+const payementRoutes = require('./routes/payementRoutes');
 
-// ==========================================
-// 🔹 Import des modèles Sequelize et test DB
-// ==========================================
-const db = require('./models'); // 🔹 Ajouté
-db.sequelize.authenticate()
-  .then(() => console.log('🗄️ Base de données connectée'))
-  .catch(err => console.error('Erreur DB :', err));
+const db = require('./models');       // Import des modèles
+const seedCategory = require('./utils/seedCategory');
+
+(async () => {
+  try {
+    // Connexion à la base
+    await db.sequelize.authenticate();
+    console.log('🗄️ Base de données connectée');
+
+    // Synchronisation des tables
+    await db.sequelize.sync({ alter: true });
+    console.log('🔄 Tables synchronisées');
+
+    // Initialisation des catégories
+    await seedCategory();
+  } catch (err) {
+    console.error('❌ Erreur DB :', err);
+  }
+})();
+
 
 // ==========================================
 // 🔹 Middlewares globaux

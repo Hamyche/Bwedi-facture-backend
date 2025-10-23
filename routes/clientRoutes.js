@@ -1,12 +1,11 @@
-const express = require('express');
+const express = require('express'); 
 const router = express.Router();
 const { body, param } = require('express-validator');
 
-const clientController = require('../controllers/clientController');
-const authorizeOwner = require('../middlewares/authorizeOwner');
-const { validate } = require('../middlewares/validationMiddleware');
-const { verifyToken } = require('../middlewares/authMiddleware'); // ✅ JWT
-const Client = require('../models/client'); // ✅ nécessaire pour authorizeOwner
+const clientController = require('../controllers/clientcontroller');
+const { authorizeOwner } = require('../middlewares/authorizeOwner');
+const { validate } = require('../middlewares/validationmiddlewares');
+const { verifyToken } = require('../middlewares/authmiddlewares');
 
 // 🔹 Créer un client
 router.post(
@@ -15,9 +14,14 @@ router.post(
     [
         body('nom').notEmpty().withMessage('Le nom est obligatoire'),
         body('prenom').notEmpty().withMessage('Le prénom est obligatoire'),
-        body('email').isEmail().withMessage('Email invalide'),
-        body('telephone').optional().isString().withMessage('Téléphone invalide'),
-        body('user_id').optional().isInt().withMessage('ID utilisateur invalide')
+        body('telephone').notEmpty().withMessage('Le téléphone est obligatoire'),
+        body('type_client')
+            .notEmpty().withMessage('Le type_client est obligatoire')
+            .isIn(['particulier', 'entreprise']).withMessage('type_client doit être particulier ou entreprise'),
+        body('email').optional().isEmail().withMessage('Email invalide'),
+        body('nif').optional().isString(),
+        body('rccm').optional().isString(),
+        body('tva').optional().isString()
     ],
     validate,
     clientController.createClient
@@ -39,11 +43,19 @@ router.get(
 router.put(
     '/:id',
     verifyToken,
-    authorizeOwner(Client, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Client', 'user_id'),
     [
         param('id').isInt().withMessage('ID client invalide'),
+        body('nom').optional().notEmpty().withMessage('Le nom ne peut pas être vide'),
+        body('prenom').optional().notEmpty().withMessage('Le prénom ne peut pas être vide'),
+        body('telephone').optional().notEmpty().withMessage('Le téléphone ne peut pas être vide'),
+        body('type_client')
+            .optional()
+            .isIn(['particulier', 'entreprise']).withMessage('type_client doit être particulier ou entreprise'),
         body('email').optional().isEmail().withMessage('Email invalide'),
-        body('telephone').optional().isString().withMessage('Téléphone invalide')
+        body('nif').optional().isString(),
+        body('rccm').optional().isString(),
+        body('tva').optional().isString()
     ],
     validate,
     clientController.updateClient
@@ -53,7 +65,7 @@ router.put(
 router.delete(
     '/:id',
     verifyToken,
-    authorizeOwner(Client, 'user_id'), // ✅ vérification propriétaire
+    authorizeOwner('Client', 'user_id'),
     [param('id').isInt().withMessage('ID client invalide')],
     validate,
     clientController.deleteClient
